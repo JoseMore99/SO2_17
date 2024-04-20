@@ -1,0 +1,9 @@
+#!/usr/bin/stap
+
+probe syscall.mmap2 {
+    printf("PID: %d, Process: %s, Syscall: Mmap,Fecha:%s, Memory Size: %d\n", pid(), execname(),ctime(gettimeofday_s()), length);
+}
+
+probe syscall.munmap {
+    printf("PID: %d, Process: %s, Syscall: Munmap,Fecha:%s, Memory Size: %d\n", pid(), execname(),ctime(gettimeofday_s()), length);
+}
