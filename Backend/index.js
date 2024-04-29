@@ -52,19 +52,38 @@ io.on('connection', (socket) => {
     socket.on("key", async data => {
         console.log(data);
         try {
-            const conexion = await mysql.createConnection(infomysql)
-            query = "SELECT * FROM so2.procesos"
-            const [results,] = await conexion.execute(query, [])
+            setInterval(async () => {
+                const conexion = await mysql.createConnection(infomysql)
+                query = "SELECT * FROM so2.procesos"
+                const [results,] = await conexion.execute(query, [])
+                query = `SELECT 
+            pid,
+            nombre_proceso as name, 
+            SUM(CASE WHEN llamada = 'Mmap' THEN tamanio ELSE -tamanio END) AS tamanio,
+            ROUND(
+                100 * (
+                    SUM(CASE WHEN llamada = 'Mmap' THEN tamanio ELSE -tamanio END) / 
+                    (SELECT SUM(CASE WHEN llamada = 'Mmap' THEN tamanio ELSE -tamanio END) FROM procesos)
+                ),
+                2
+            ) AS porcentaje
+        FROM 
+            procesos
+        GROUP BY 
+            nombre_proceso`
+                const [results2,] = await conexion.execute(query, [])
 
-            conexion.end(function (err) {
-                if (err) {
-                    console.log(err.message);
-                    return
-                }
-            });
-            conexion.destroy()
-            var x = JSON.parse(results)
-            io.emit("key", x)
+                conexion.end(function (err) {
+                    if (err) {
+                        console.log(err.message);
+                        return
+                    }
+                });
+                conexion.destroy()
+                io.emit("key", results)
+                io.emit("key2", results2)
+
+            }, 2000);
         } catch (error) {
             console.log(error);
         }
@@ -78,6 +97,5 @@ app.get('/', (req, res) => {
 });
 
 server.listen(4000, async () => {
-    await client.connect()
     console.log("Server on port 4000");
 })

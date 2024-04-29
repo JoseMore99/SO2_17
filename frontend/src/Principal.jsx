@@ -22,7 +22,7 @@ function Principal() {
 
     useEffect(() => {
 
-        socket.emit("key", "201701015");
+        socket.emit("key", "Grupo17");
         socket.on("key", (t) => {
             //console.log(t);
             Addprocesos(t)
